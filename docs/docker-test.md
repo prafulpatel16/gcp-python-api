@@ -168,3 +168,73 @@ docker rmi gcp-fastapi:v1
 * Use `AS` (uppercase) in Dockerfile stage naming to avoid warnings.
 * For production, you may disable test/lint steps in final Docker build.
 
+### ============== Docker image Scan ======================================
+
+
+
+# 🛡️ Docker Image Vulnerability Scanning with Docker Scout
+
+This document outlines how to install and use Docker Scout to scan Docker images for vulnerabilities on Windows using Docker Desktop.
+
+---
+
+## 📦 Prerequisites
+
+- Docker Desktop installed (v4.18 or later recommended)
+- A Docker image built locally (e.g., `gcp-fastapi:v1`)
+- Internet access
+
+---
+
+## 🔧 1. Install Docker Scout CLI
+
+Docker Scout comes pre-installed with recent versions of Docker Desktop. To confirm:
+
+```bash
+docker scout --version
+
+```
+## Scan local docker images
+ 
+ ```bash
+ docker scout quickview gcp-fastapi:v1
+
+ ```
+![alt text](images/scan1.png)
+
+This will display:
+Vulnerabilities grouped by severity
+CVE links for more details
+Fixed versions (if available)
+
+## Understanding the Output
+
+x HIGH CVE-2025-47273
+  Affected package: xyz
+  Affected range: <78.1.1
+  Fixed version: 78.1.1
+
+![alt text](images/scan2.png)
+
+---
+Take action by:
+
+Upgrading base images or packages
+
+Rebuilding your Docker image with patched dependencies
+
+
+## Re-scan After Fixes
+docker build -t gcp-fastapi:v2 .
+docker scout quickview gcp-fastapi:v2
+
+Ensure all critical/high vulnerabilities are addressed.
+
+- Re build the image after fixing high vunerbilities and re scan the image
+
+
+![alt text](images/scan3.png)
+
+![alt text](images/scan4.png)
+
+![alt text](images/scan5.png)
