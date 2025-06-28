@@ -94,3 +94,24 @@ PYTHONPATH=. pytest --color=yes | tee test-results.txt
 
 ---
 
+## ============= Docker =============================
+
+# Docker image tag
+```shell
+docker tag gcp-fastapi:v2 praful2018/gcp-fastapi:v2
+
+```
+![alt text](docs/images/tag1.png)
+
+
+# Push to Docker Hub
+
+```shell
+docker push praful2018/gcp-fastapi:v2
+
+```
+![alt text](docs/images/tag2.png)
+
+![alt text](docs/images/tag3.png)
+
+
