@@ -136,11 +136,11 @@ jobs:
       run: |
         gcloud monitoring uptime create "FastAPI Uptime Check Dev" \
           --resource-type=uptime-url \
-          --resource-labels=host=${{ env.SERVICE_URL }},project_id=${{ env.PROJECT_ID }} \
+          --resource-labels=host=${{ env.SERVICE_URL }},project_id=${{ secrets.GCP_PROJECT_ID }} \
           --protocol=https \
           --path="/helloworld" \
           --port=443 \
-          --project=${{ env.PROJECT_ID }} \
+          --project=${{ secrets.GCP_PROJECT_ID }} \
           || echo "Uptime check 'FastAPI Uptime Check Dev' already exists or failed to create, continuing."
 
     - name: Write Deployment Log to Cloud Logging
