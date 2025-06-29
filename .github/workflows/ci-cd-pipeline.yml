@@ -152,7 +152,7 @@ jobs:
             --path="/helloworld" \
             --port=443 \
             --check-interval=60s \
-            --timeout=10s \
+            --timeout=10 \
             --region=us-central1
         fi
 
