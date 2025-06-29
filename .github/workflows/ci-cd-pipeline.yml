@@ -1,0 +1,102 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  lint_and_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.10
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Lint code with pylint
+      run: |
+        pylint app.py
+
+    - name: Run unit tests with pytest
+      run: |
+        pytest
+
+  docker_build_and_push:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: ~/.docker/buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Log in to Google Cloud Docker registry
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    - name: Build and push Docker image to Artifact Registry
+      run: |
+        docker build -t gcr.io/$GCP_PROJECT_ID/fastapi-app:$GITHUB_SHA .
+        docker push gcr.io/$GCP_PROJECT_ID/fastapi-app:$GITHUB_SHA
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: docker_build_and_push
+    steps:
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    - name: Deploy to Cloud Run
+      run: |
+        # Deploy the application to Cloud Run
+        gcloud run deploy fastapi-app \
+          --image=gcr.io/$GCP_PROJECT_ID/fastapi-app:$GITHUB_SHA \
+          --region=us-central1 \
+          --platform=managed \
+          --allow-unauthenticated \
+          --quiet
+
+    - name: Get the Cloud Run service URL
+      id: cloudrun_url
+      run: |
+        # Fetch the deployed Cloud Run URL
+        RUN_URL=$(gcloud run services describe fastapi-app --region=us-central1 --platform=managed --format="value(status.url)")
+        echo "Cloud Run service URL: $RUN_URL"
+        echo "RUN_URL=$RUN_URL" >> $GITHUB_ENV  # Save the URL as an environment variable for later steps
+
+    - name: Create Uptime Check (if not exists)
+      run: |
+        # Create uptime check using the fetched Cloud Run URL
+        if ! gcloud monitoring uptime-checks describe fastapi-health-check; then
+          gcloud monitoring uptime-checks create http fastapi-health-check \
+            --host=${{ env.RUN_URL }} \
+            --path=/healthz \
+            --port=443 \
+            --check-interval=60s \
+            --timeout=10s
+        fi
+
+    - name: Enable Cloud Logging
+      run: |
+        # Use the Cloud Run URL for logging
+        gcloud logging write fastapi-logs "Cloud Run deployed successfully at ${{ env.RUN_URL }}" --severity=INFO
