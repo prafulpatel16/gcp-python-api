@@ -21,4 +21,3 @@ async def health_check():
     """Returns health check status"""
     logger.info("Health check requested")
     return {"status": "healthy"}
-    
