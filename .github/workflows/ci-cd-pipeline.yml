@@ -149,7 +149,7 @@ jobs:
           gcloud monitoring uptime create \
             --display-name="FastAPI Uptime Check Dev" \
             --resource-type="URL" \
-            --hostname="$STRIPPED_URL" \
+            --url="$STRIPPED_URL" \
             --path="/helloworld" \
             --port=443 \
             --check-interval=60 \
