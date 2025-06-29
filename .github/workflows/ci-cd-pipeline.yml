@@ -76,6 +76,9 @@ jobs:
     - name: Scan Docker image with Docker Scout
       uses: docker/scout-action@v1
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }} # Docker Hub username
+        dockerhub-password: ${{ secrets.DOCKERHUB_PASSWORD }} # Docker Hub access token
         command: cves
         # FIXED: Use ${{ github.sha }} expression syntax
         image: ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:${{ github.sha }}
