@@ -48,8 +48,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildx-
 
+    - name: Install Docker Scout CLI
+      run: |
+        curl -sSL https://github.com/docker/scout-cli/releases/latest/download/scout-linux-amd64 -o /usr/local/bin/docker-scout
+        chmod +x /usr/local/bin/docker-scout
+
     - name: Log in to Google Cloud Docker registry
-      uses: google-github-actions/auth@v1 # Updated to v1
+      uses: google-github-actions/auth@v1
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
@@ -76,7 +81,7 @@ jobs:
     needs: docker_build_and_push
     steps:
     - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v1 # Updated to v1
+      uses: google-github-actions/auth@v1
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
