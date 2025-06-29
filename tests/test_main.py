@@ -11,9 +11,11 @@ def test_read_root():
     assert response.status_code == 200
     assert response.json() == {"status": "OK"}
 
+
 def test_health_check():
     """Test the /healthz endpoint"""
     response = client.get("/healthz")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
+    
 

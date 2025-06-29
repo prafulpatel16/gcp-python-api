@@ -15,6 +15,7 @@ async def read_root():
     """Root endpoint returning JSON status"""
     logger.info("Root endpoint hit")
     return {"status": "OK"}
+    
 
 
 @app.get("/healthz", response_class=JSONResponse)
@@ -22,4 +23,5 @@ async def health_check():
     """Returns health check status"""
     logger.info("Health check requested")
     return {"status": "healthy"}
-    
+
+
