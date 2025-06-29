@@ -24,11 +24,11 @@ jobs:
 
     - name: Lint code with pylint
       run: |
-        pylint app.py
+        pylint app/main.py
 
     - name: Run unit tests with pytest
       run: |
-        pytest
+        pytest tests/test_main.py 
 
   docker_build_and_push:
     runs-on: ubuntu-latest
