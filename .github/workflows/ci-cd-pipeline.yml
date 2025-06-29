@@ -47,7 +47,7 @@ jobs:
       REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Change to your Artifact Registry region
       IMAGE_NAME: fastapi-repo-dev/fastapi-app # Change to your Artifact Registry repo and image name
       # IMAGE_FULL_NAME will be composed as: us-central1-docker.pkg.dev/your-project/fastapi-repo/fastapi-app
-      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo/fastapi-app' }}
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app' }}
 
     steps:
     - name: Checkout repository
