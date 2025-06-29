@@ -142,14 +142,14 @@ jobs:
         STRIPPED_URL=$(echo $SERVICE_URL | sed 's|https://||')
 
         # Check if uptime check already exists
-        if gcloud monitoring uptime list --filter="displayName:fastapi-uptime-check-dev" --region=us-central1 | grep -q "fastapi-uptime-check"; then
+        if gcloud monitoring uptime list --filter="displayName:fastapi-uptime-check-dev" --region=us-central1 | grep -q "fastapi-uptime-check-dev"; then
           echo "Uptime check already exists. Skipping creation."
         else
           echo "Creating new uptime check."
-          gcloud monitoring uptime-checks create fastapi-uptime-check-dev\
+          gcloud monitoring uptime create http fastapi-uptime-check-dev\
             --display-name="FastAPI Uptime Check Dev" \
             --resource-type="uptime-url" \
-            --resource-labels="host=${SERVICE_URL}" \
+            --resource-labels="host=${{ env.SERVICE_URL }}" \
             --path="/helloworld" \
             --use-ssl \
             --period="60s" \
