@@ -146,14 +146,16 @@ jobs:
           echo "Uptime check already exists. Skipping creation."
         else
           echo "Creating new uptime check."
-          gcloud monitoring uptime create http fastapi-uptime-check-dev\
+          gcloud monitoring uptime create \
             --display-name="FastAPI Uptime Check Dev" \
-            --resource-type="uptime-url" \
-            --resource-labels="host=${{ env.STRIPPED_URL}}" \
+            --host="$STRIPPED_URL" \
             --path="/helloworld" \
+            --port=443 \
+            --check-interval=60s \
+            --timeout=10 \
+            --region=us-central1 \
             --use-ssl \
-            --period="1" \
-            --timeout="10" \
+            --labels=env=dev
 
         fi
 
