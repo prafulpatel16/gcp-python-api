@@ -54,7 +54,7 @@ jobs:
         # Add Docker Scout installation directory to $PATH
         echo "/home/runner/.docker/cli-plugins" >> $GITHUB_ENV
         # Verify Docker Scout is installed and available
-        docker-scout --version
+        /home/runner/.docker/cli-plugins/docker-scout --version
 
     - name: Log in to Google Cloud Docker registry
       uses: google-github-actions/auth@v1
