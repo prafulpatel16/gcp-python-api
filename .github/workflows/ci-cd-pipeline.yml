@@ -108,6 +108,7 @@ jobs:
       REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Must match the build job
       IMAGE_NAME: fastapi-repo-dev/fastapi-app-dev # Must match the build job
       IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app-dev' }}
+      SERVICE_NAME: fastapi-app-dev # Name of the Cloud Run service
 
     steps:
     - name: Authenticate to Google Cloud
@@ -117,7 +118,7 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy fastapi-app \
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
           --image=${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:v1.0.0 \
           --region=us-central1 \
           --platform=managed \
@@ -131,17 +132,29 @@ jobs:
         echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
         echo "Service deployed successfully at: $SERVICE_URL"
 
-    - name: Create Cloud Monitoring Uptime Check
+    - name: Create or update Uptime Check
       run: |
-        # This command will fail gracefully if the check already exists
-        gcloud monitoring uptime-checks create http fastapi-uptime-check \
-          --display-name="FastAPI Uptime Check-Dev" \
-          --resource-type="uptime-url" \
-          --resource-labels="host=${{ env.SERVICE_URL }}" \
-          --path="/helloworld" \
-          --use-ssl \
-          --period="60s" \
-          --timeout="10s" || echo "Uptime check 'fastapi-uptime-check' already exists."
+        # Fetch the URL of the service deployed
+        SERVICE_URL=$(gcloud run services describe fastapi-app --platform=managed --region=us-central1 --format='value(status.url)')
+        echo "Service deployed successfully at: $SERVICE_URL"
+
+        # Strip the 'https://' from the service URL
+        STRIPPED_URL=$(echo $SERVICE_URL | sed 's|https://||')
+
+        # Check if uptime check already exists
+        if gcloud monitoring uptime list --filter="displayName:fastapi-uptime-check" --region=us-central1 | grep -q "fastapi-uptime-check"; then
+          echo "Uptime check already exists. Skipping creation."
+        else
+          echo "Creating new uptime check."
+          gcloud monitoring uptime create \
+            --display-name="fastapi-uptime-check-dev" \
+            --host="$STRIPPED_URL" \
+            --path="/helloworld" \
+            --port=443 \
+            --check-interval=60s \
+            --timeout=10s \
+            --region=us-central1
+        fi
 
     - name: Write Deployment Log to Cloud Logging
       run: |
