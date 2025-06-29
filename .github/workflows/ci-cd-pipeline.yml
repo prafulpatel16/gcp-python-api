@@ -91,7 +91,10 @@ jobs:
 
     - name: Push Docker images to Artifact Registry
       # This pushes all tags (v1.0.0, latest, and the commit SHA) at once
-      run: docker push --all ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}
+      run: |
+        docker push ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:v1.0.0
+        docker push ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:latest
+        docker push ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:${{ github.sha }}
 
   ##################################################
   # 3. DEPLOY: Deploy the image to Google Cloud Run
@@ -103,8 +106,8 @@ jobs:
 
     env:
       REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Must match the build job
-      IMAGE_NAME: fastapi-repo/fastapi-app # Must match the build job
-      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo/fastapi-app' }}
+      IMAGE_NAME: fastapi-repo-dev/fastapi-app # Must match the build job
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-rep-dev/fastapi-app' }}
 
     steps:
     - name: Authenticate to Google Cloud
