@@ -152,7 +152,7 @@ jobs:
             --resource-labels="host=${{ env.SERVICE_URL }}" \
             --path="/helloworld" \
             --use-ssl \
-            --period="60s" \
+            --period="1" \
             --timeout="10s" \
 
         fi
