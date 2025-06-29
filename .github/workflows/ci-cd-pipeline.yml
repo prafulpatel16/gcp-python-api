@@ -52,6 +52,8 @@ jobs:
       run: |
         curl -sSL https://github.com/docker/scout-cli/releases/latest/download/scout-linux-amd64 -o /usr/local/bin/docker-scout
         chmod +x /usr/local/bin/docker-scout
+        # Verify Docker Scout is installed and available
+        docker-scout --version
 
     - name: Log in to Google Cloud Docker registry
       uses: google-github-actions/auth@v1
@@ -66,8 +68,8 @@ jobs:
 
     - name: Scan Docker image with Docker Scout
       run: |
-        docker scout start gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
-        docker scout results
+        docker-scout start gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
+        docker-scout results
 
     - name: Push Docker image to Artifact Registry
       run: |
