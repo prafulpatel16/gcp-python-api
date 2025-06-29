@@ -45,9 +45,9 @@ jobs:
     # Set environment variables for easy reuse and maintenance
     env:
       REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Change to your Artifact Registry region
-      IMAGE_NAME: fastapi-repo-dev/fastapi-app # Change to your Artifact Registry repo and image name
+      IMAGE_NAME: fastapi-repo-dev/fastapi-app-dev # Change to your Artifact Registry repo and image name
       # IMAGE_FULL_NAME will be composed as: us-central1-docker.pkg.dev/your-project/fastapi-repo/fastapi-app
-      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app' }}
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app-dev' }}
 
     steps:
     - name: Checkout repository
@@ -106,8 +106,8 @@ jobs:
 
     env:
       REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Must match the build job
-      IMAGE_NAME: fastapi-repo-dev/fastapi-app # Must match the build job
-      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app' }}
+      IMAGE_NAME: fastapi-repo-dev/fastapi-app-dev # Must match the build job
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app-dev' }}
 
     steps:
     - name: Authenticate to Google Cloud
@@ -135,10 +135,10 @@ jobs:
       run: |
         # This command will fail gracefully if the check already exists
         gcloud monitoring uptime-checks create http fastapi-uptime-check \
-          --display-name="FastAPI Uptime Check" \
+          --display-name="FastAPI Uptime Check-Dev" \
           --resource-type="uptime-url" \
           --resource-labels="host=${{ env.SERVICE_URL }}" \
-          --path="/healthz" \
+          --path="/helloworld" \
           --use-ssl \
           --period="60s" \
           --timeout="10s" || echo "Uptime check 'fastapi-uptime-check' already exists."
