@@ -134,22 +134,14 @@ jobs:
 
     - name: Create Cloud Monitoring Uptime Check
       run: |
-        # This single, robust command uses the correct, modern flags.
-        # The '||' operator makes it continue without error if the check already exists.
-        # The KEY FIX is adding the 'http' type after 'create'.
-        gcloud monitoring uptime create http fastapi-uptime-check-dev \
-          --display-name="FastAPI Uptime Check Dev" \
-          --resource-type="uptime-url" \
-          --resource-labels="host=${{ env.SERVICE_URL }}" \
+        gcloud monitoring uptime create "FastAPI Uptime Check Dev" \
+          --resource-type=uptime-url \
+          --resource-labels=host=${{ env.SERVICE_URL }},project_id=${{ env.PROJECT_ID }} \
+          --protocol=https \
           --path="/helloworld" \
-          --use-ssl \
           --port=443 \
-          --status-classes=2xx \
-          --period=1 \
-          --timeout=10 \
-          --regions=usa-iowa,europe,asia-pacific \
-          --user-labels=env=dev \
-          || echo "Uptime check 'fastapi-uptime-check-dev' already exists or failed to create, continuing."
+          --project=${{ env.PROJECT_ID }} \
+          || echo "Uptime check 'FastAPI Uptime Check Dev' already exists or failed to create, continuing."
 
     - name: Write Deployment Log to Cloud Logging
       run: |
