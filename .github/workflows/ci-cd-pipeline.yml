@@ -149,14 +149,14 @@ jobs:
           gcloud monitoring uptime create \
             --display-name="FastAPI Uptime Check Dev" \
             --resource-type="uptime-url" \
-            --resource-labels="host=${SERVICE_URL}" \
+            --resource-labels="host=${ STRIPPED_URL }" \
             --path="/helloworld" \
             --use-ssl \
             --port=443 \
             --status-classes=2xx \
             --period=1 \
             --timeout=10 \
-            --regions=us-central1 \
+            --regions=usa-iowa,europe,asia-pacific \
             --user-labels=env=dev \
 
 
