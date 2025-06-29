@@ -63,13 +63,13 @@ jobs:
       uses: docker/scout-action@v1 # Using the Docker Scout Action to scan the image
       with:
         command: compare # Compare the image in the pull request with the one in production
-        image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
+        image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA # Ensure this is correct
         to-env: production
         ignore-unchanged: true
         only-severities: critical,high
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }} # Use Docker Hub username
-        dockerhub-password: ${{ secrets.DOCKERHUB_PASSWORD }} # Use Docker Hub access token
+        dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }} # Add Docker Hub username
+        dockerhub-password: ${{ secrets.DOCKERHUB_PASSWORD }} # Add Docker Hub token
         summary: true
         format: json
         write-comment: true
