@@ -148,15 +148,16 @@ jobs:
           echo "Creating new uptime check."
           gcloud monitoring uptime create \
             --display-name="FastAPI Uptime Check Dev" \
-            --resource-type="URL" \
-            --url="$STRIPPED_URL" \
+            --resource-type="uptime-url" \
+            --resource-labels="host=${SERVICE_URL}" \
             --path="/helloworld" \
+            --use-ssl \
             --port=443 \
-            --check-interval=60 \
+            --status-classes=2xx \
+            --period=1 \
             --timeout=10 \
             --regions=us-central1 \
-            --use-ssl \
-            --labels=env=dev
+            --user-labels=env=dev \
 
 
         fi
