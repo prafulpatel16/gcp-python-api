@@ -48,14 +48,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildx-
 
-    - name: Install Docker Scout CLI
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
-        # Add Docker Scout installation directory to $PATH
-        echo "/home/runner/.docker/cli-plugins" >> $GITHUB_ENV
-        # Verify Docker Scout is installed and available
-        /home/runner/.docker/cli-plugins/docker-scout --version
-
     - name: Log in to Google Cloud Docker registry
       uses: google-github-actions/auth@v1
       with:
@@ -67,10 +59,15 @@ jobs:
           -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:latest \
           -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA .
 
-    - name: Scan Docker image with Docker Scout
-      run: |
-        docker-scout start gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
-        docker-scout results
+    - name: Scan Docker image with Docker Scout Action
+      uses: docker/scout-action@v1 # Using the Docker Scout Action to scan the image
+      with:
+        command: compare # Compare the image in the pull request with the one in production
+        image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
+        to-env: production
+        ignore-unchanged: true
+        only-severities: critical,high
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push Docker image to Artifact Registry
       run: |
