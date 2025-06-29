@@ -68,7 +68,8 @@ jobs:
         ignore-unchanged: true
         only-severities: critical,high
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        docker-hub-token: ${{ secrets.DOCKER_HUB_TOKEN }} # Add the Docker Hub token for authentication
+        dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }} # Use Docker Hub username
+        dockerhub-password: ${{ secrets.DOCKERHUB_PASSWORD }} # Use Docker Hub access token
         summary: true
         format: json
         write-comment: true
