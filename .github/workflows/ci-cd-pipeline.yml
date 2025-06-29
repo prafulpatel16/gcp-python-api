@@ -1,126 +1,138 @@
+# .github/workflows/main.yml
+
 name: CI/CD Pipeline
 
 on:
   push:
     branches:
-    - master
+    - master # Triggers the workflow on pushes to the master branch
 
 jobs:
+  ###########################################
+  # 1. LINT & TEST: Validate the code quality
+  ###########################################
   lint_and_test:
+    name: Lint & Test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4 # Use latest version
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4 # Use latest version
       with:
-        python-version: '3.10' # Update this to a supported version, e.g., 3.10
-        architecture: 'x64'
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     - name: Lint code with pylint
-      run: |
-        pylint app/main.py
+      run: pylint app/main.py
 
     - name: Run unit tests with pytest
-      run: |
-        pytest tests/test_main.py 
+      run: pytest tests/test_main.py
 
-  docker_build_and_push:
+  ###############################################################
+  # 2. BUILD & PUSH: Build, Scan, and Push the Docker image
+  ###############################################################
+  build_and_push:
+    name: Build, Scan & Push Docker Image
     runs-on: ubuntu-latest
-    needs: lint_and_test
+    needs: lint_and_test # This job runs only after lint_and_test succeeds
+
+    # Set environment variables for easy reuse and maintenance
+    env:
+      REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Change to your Artifact Registry region
+      IMAGE_NAME: fastapi-repo-dev/fastapi-app # Change to your Artifact Registry repo and image name
+      # IMAGE_FULL_NAME will be composed as: us-central1-docker.pkg.dev/your-project/fastapi-repo/fastapi-app
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo/fastapi-app' }}
+
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: ~/.docker/buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-
-    - name: Log in to Google Cloud Docker registry
-      uses: google-github-actions/auth@v1
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    - name: Build Docker image
-      run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:v1.0.0 \
-          -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:latest \
-          -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA .
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker ${{ env.REGISTRY_HOSTNAME }}
 
-    - name: Print image reference
-      run: |
-        echo "Image reference: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA"
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    - name: Scan Docker image with Docker Scout Action
+    - name: Build Docker image with multiple tags
+      run: |
+        docker build -t ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:v1.0.0 \
+          -t ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:latest \
+          -t ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:${{ github.sha }} \
+          --cache-from=type=gha \
+          --cache-to=type=gha,mode=max \
+          .
+
+    - name: Scan Docker image with Docker Scout
       uses: docker/scout-action@v1
       with:
-        command: compare
-        image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
-        to-env: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:v1.0.0
-        ignore-unchanged: true
+        command: cves
+        # FIXED: Use ${{ github.sha }} expression syntax
+        image: ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:${{ github.sha }}
         only-severities: critical,high
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }} # Docker Hub username
-        dockerhub-password: ${{ secrets.DOCKERHUB_PASSWORD }} # Docker Hub access token
-        summary: true
-        format: json
-        write-comment: true
+        exit-code: true # Fails the step if vulnerabilities are found
 
-    - name: Push Docker image to Artifact Registry
-      run: |
-        # Push the image with multiple tags
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:v1.0.0
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:latest
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
+    - name: Push Docker images to Artifact Registry
+      # This pushes all tags (v1.0.0, latest, and the commit SHA) at once
+      run: docker push --all ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}
 
+  ##################################################
+  # 3. DEPLOY: Deploy the image to Google Cloud Run
+  ##################################################
   deploy:
+    name: Deploy to Cloud Run
     runs-on: ubuntu-latest
-    needs: docker_build_and_push
+    needs: build_and_push # This job runs only after build_and_push succeeds
+
+    env:
+      REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Must match the build job
+      IMAGE_NAME: fastapi-repo/fastapi-app # Must match the build job
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo/fastapi-app' }}
+
     steps:
     - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v1
+      uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy fastapi-app \
-          --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:v1.0.0 \
+          --image=${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:v1.0.0 \
           --region=us-central1 \
           --platform=managed \
           --allow-unauthenticated \
           --quiet
 
     - name: Get the Cloud Run service URL
-      id: cloudrun_url
+      id: get_url
       run: |
-        RUN_URL=$(gcloud run services describe fastapi-app --region=us-central1 --platform=managed --format="value(status.url)")
-        echo "Cloud Run service URL: $RUN_URL"
-        echo "RUN_URL=$RUN_URL" >> $GITHUB_ENV
+        SERVICE_URL=$(gcloud run services describe fastapi-app --platform=managed --region=us-central1 --format='value(status.url)')
+        echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
+        echo "Service deployed successfully at: $SERVICE_URL"
 
-    - name: Create Uptime Check (if not exists)
+    - name: Create Cloud Monitoring Uptime Check
       run: |
-        if ! gcloud monitoring uptime-checks describe fastapi-health-check; then
-          gcloud monitoring uptime-checks create http fastapi-health-check \
-            --host=${{ env.RUN_URL }} \
-            --path=/healthz \
-            --port=443 \
-            --check-interval=60s \
-            --timeout=10s
-        fi
+        # This command will fail gracefully if the check already exists
+        gcloud monitoring uptime-checks create http fastapi-uptime-check \
+          --display-name="FastAPI Uptime Check" \
+          --resource-type="uptime-url" \
+          --resource-labels="host=${{ env.SERVICE_URL }}" \
+          --path="/healthz" \
+          --use-ssl \
+          --period="60s" \
+          --timeout="10s" || echo "Uptime check 'fastapi-uptime-check' already exists."
 
-    - name: Enable Cloud Logging
+    - name: Write Deployment Log to Cloud Logging
       run: |
-        gcloud logging write fastapi-logs "Cloud Run deployed successfully at ${{ env.RUN_URL }}" --severity=INFO
+        gcloud logging write deploy-logs "Successfully deployed image to Cloud Run service [fastapi-app]. URL: ${{ env.SERVICE_URL }}" --payload-type=text --severity=INFO
