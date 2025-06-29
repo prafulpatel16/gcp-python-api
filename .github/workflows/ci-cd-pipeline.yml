@@ -149,11 +149,11 @@ jobs:
           gcloud monitoring uptime create http fastapi-uptime-check-dev\
             --display-name="FastAPI Uptime Check Dev" \
             --resource-type="uptime-url" \
-            --resource-labels="host=${{ env.SERVICE_URL }}" \
+            --resource-labels="host=${{ env.STRIPPED_URL}}" \
             --path="/helloworld" \
             --use-ssl \
             --period="1" \
-            --timeout="10s" \
+            --timeout="10" \
 
         fi
 
