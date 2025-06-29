@@ -68,7 +68,7 @@ jobs:
       with:
         command: compare
         image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:$GITHUB_SHA
-        to-env: production
+        to-env: gcr.io/${{ secrets.GCP_PROJECT_ID }}/fastapi-app:v1.0.0
         ignore-unchanged: true
         only-severities: critical,high
         github-token: ${{ secrets.GITHUB_TOKEN }}
