@@ -107,7 +107,7 @@ jobs:
     env:
       REGISTRY_HOSTNAME: us-central1-docker.pkg.dev # Must match the build job
       IMAGE_NAME: fastapi-repo-dev/fastapi-app # Must match the build job
-      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-rep-dev/fastapi-app' }}
+      IMAGE_FULL_NAME: ${{ secrets.GCP_PROJECT_ID }}/${{ vars.IMAGE_NAME || 'fastapi-repo-dev/fastapi-app' }}
 
     steps:
     - name: Authenticate to Google Cloud
