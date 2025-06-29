@@ -132,11 +132,18 @@ jobs:
         echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
         echo "Service deployed successfully at: $SERVICE_URL"
 
+    - name: Set up environment
+      run: |
+        # Strip protocol and path from SERVICE_URL
+        export CLEAN_HOST=${SERVICE_URL#*//}
+        export CLEAN_HOST=${CLEAN_HOST%%/*}
+        echo "CLEAN_HOST=$CLEAN_HOST" >> $GITHUB_ENV
+
     - name: Create Cloud Monitoring Uptime Check
       run: |
         gcloud monitoring uptime create "FastAPI Uptime Check Dev" \
           --resource-type=uptime-url \
-          --resource-labels=host=${{ env.SERVICE_URL }},project_id=${{ secrets.GCP_PROJECT_ID }} \
+          --resource-labels=host=${{ env.CLEAN_HOST }},project_id=${{ secrets.GCP_PROJECT_ID }} \
           --protocol=https \
           --path="/helloworld" \
           --port=443 \
