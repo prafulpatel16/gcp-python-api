@@ -6,7 +6,8 @@
 - Navigate to your project directory
 - Run the API using the appropriate command:
   - For Node.js: `npm start` or `node app.js`
-  - For Python: `uvicorn main:app --reload`
+  - For Python: `uvicorn app.main:app --reload`
+`
 - Terminal output confirms the API is running locally (see below)
 
 ![alt text](images/local1.png)

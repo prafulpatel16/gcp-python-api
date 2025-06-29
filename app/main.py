@@ -2,7 +2,7 @@
 
 import logging
 from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse, JSONResponse
+from fastapi.responses import JSONResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -10,14 +10,15 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-@app.get("/", response_class=PlainTextResponse)
+@app.get("/helloworld", response_class=JSONResponse)
 async def read_root():
-    """Returns a plain text OK status"""
+    """Root endpoint returning JSON status"""
     logger.info("Root endpoint hit")
-    return "Hello, World! Status: OK"
+    return {"status": "OK"}
 
 @app.get("/healthz", response_class=JSONResponse)
 async def health_check():
     """Returns health check status"""
     logger.info("Health check requested")
     return {"status": "healthy"}
+    

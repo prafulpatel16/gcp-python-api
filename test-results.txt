@@ -5,9 +5,10 @@ rootdir: /mnt/c/devops-work/gcp-python-api
 configfile: pytest.ini
 testpaths: tests
 plugins: anyio-4.9.0
-[1mcollecting ... [0mcollected 1 item
+[1mcollecting ... [0mcollected 2 items
 
-tests/test_main.py::test_read_root [32mPASSED[0m[33m                                [100%][0m
+tests/test_main.py::test_read_root [32mPASSED[0m[33m                                [ 50%][0m
+tests/test_main.py::test_health_check [32mPASSED[0m[33m                             [100%][0m
 
 [33m=============================== warnings summary ===============================[0m
 venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1474
@@ -17,4 +18,4 @@ venv/lib/python3.12/site-packages/_pytest/config/__init__.py:1474
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 ------ generated xml file: /mnt/c/devops-work/gcp-python-api/results.xml -------
-[33m========================= [32m1 passed[0m, [33m[1m1 warning[0m[33m in 2.15s[0m[33m =========================[0m
+[33m========================= [32m2 passed[0m, [33m[1m1 warning[0m[33m in 2.26s[0m[33m =========================[0m

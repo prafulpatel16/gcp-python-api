@@ -1,24 +1,44 @@
-# Stage 1: Build, lint, test
-FROM python:3.11-slim AS builder
+# Stage 1: Build, Lint, Test
+FROM python:3.12-slim-bookworm AS builder
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update + Install only what is needed
+RUN apt-get update && apt-get install -y --no-install-recommends gcc curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
+# Upgrade pip and install secure packages
+COPY requirements.txt . 
+RUN pip install --upgrade pip setuptools==78.1.1 \
+    && pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir pytest pylint httpx
 
 COPY . .
 
-# Lint and run tests
-RUN PYTHONPATH=. pylint app tests && PYTHONPATH=. pytest tests
+# Run lint and tests, fail if pylint score < 9.0
+RUN PYTHONPATH=. pylint app tests --fail-under=9.0 \
+ && PYTHONPATH=. pytest tests
 
-# Stage 2: Runtime
-FROM python:3.11-slim
+# Stage 2: Runtime image
+FROM python:3.12-slim-bookworm
+
+# Create non-root user
+RUN useradd -m appuser
 
 WORKDIR /app
 
 COPY --from=builder /app /app
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Only install runtime dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip setuptools==78.1.1 \
+    && pip install --no-cache-dir -r requirements.txt
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+USER appuser
+
+EXPOSE 8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]

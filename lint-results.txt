@@ -1,4 +1,8 @@
+************* Module app.main
+app/main.py:24:0: C0303: Trailing whitespace (trailing-whitespace)
+************* Module tests.test_main
+tests/test_main.py:19:0: C0305: Trailing newlines (trailing-newlines)
 
---------------------------------------------------------------------
-Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+------------------------------------------------------------------
+Your code has been rated at 9.13/10 (previous run: 9.13/10, +0.00)
 
