@@ -50,8 +50,7 @@ jobs:
 
     - name: Install Docker Scout CLI
       run: |
-        curl -sSL https://github.com/docker/scout-cli/releases/latest/download/scout-linux-amd64 -o /usr/local/bin/docker-scout
-        chmod +x /usr/local/bin/docker-scout
+        curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
         # Verify Docker Scout is installed and available
         docker-scout --version
 
