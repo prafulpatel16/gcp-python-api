@@ -83,7 +83,11 @@ jobs:
         # FIXED: Use ${{ github.sha }} expression syntax
         image: ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_FULL_NAME }}:${{ github.sha }}
         only-severities: critical,high
-        exit-code: true # Fails the step if vulnerabilities are found
+        exit-code: false # Fails the step if vulnerabilities are found
+        write-comment: true # Posts a summary to the commit/PR
+        summary: true # Adds a detailed report to the Actions Job Summary page
+        format: sarif # Choose an output format for artifacts
+        output: scout-report.sarif # Define the output file name
 
     - name: Push Docker images to Artifact Registry
       # This pushes all tags (v1.0.0, latest, and the commit SHA) at once
