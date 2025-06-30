@@ -8,21 +8,28 @@ This project demonstrates how to securely build, test, containerize, and deploy 
 
 ## Diagram
 
-![alt text](gcp-fastapi-arch.drawio.png)
+![alt text](gcp-fastapi-arch.drawio_v1.png)
 
 
 ## 1. Technology Stack
 
-- **Framework Setup**: FastAPI, Python
-  : Click here to follow: [0.Framework Setup](docs/0.framework_setup.md)
-- **Containerization**: Docker with multi-stage builds
-  : Click here to follow: [1.containerization_app](docs/1.containerization_app)
+- **Framework Setup**: FastAPI, Python  
+  👉 [Click here to follow: 0.Framework Setup](docs/0.framework_setup.md)
+
+- **Containerization**: Docker with multi-stage builds  
+  👉 [Click here to follow: 1.containerization_app](docs/1.containerization_app.md)
+
 - **Security**: Docker Scout (vulnerability scanning)
+
 - **Registry**: Google Artifact Registry
+
 - **Deployment**: Google Cloud Run (fully managed)
+
 - **Monitoring**: Google Cloud Monitoring (Uptime Checks, Logs)
-- **CI/CD**: GitHub Actions (triggered on `main` branch push)
- : Click here to follow: [2.CICD-deployment](2.CICD-deployment)
+
+- **CI/CD**: GitHub Actions (triggered on `main` branch push)  
+  👉 [Click here to follow: 2.CICD-deployment](docs/2.CICD-deployment.md)
+
 
 ## ✅ Tools and Technologies
 
