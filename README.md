@@ -1,17 +1,45 @@
-# 🚀 FastAPI Hello World API - Google Cloud Run CI/CD
+# FastAPI Deployment to Google Cloud Platform (GCP)
 
-## 📌 Objective
+## Objective
 
-- Build and test a simple Python FastAPI web API
-- Lint and validate code quality with `pylint`
-- Run unit tests using `pytest`
-- Package it in a secure Docker image and scan with Docker scout for vulnerabilities
-- Publish the image to Google Artifact Registry
-- Deploy to Google Cloud Run (fully managed)
-- Set up uptime check with Monitoring an logging
-- Automate CI/CD pipeline using GitHub Actions on `main` branch push
+This project demonstrates how to securely build, test, containerize, and deploy a Python FastAPI web API to Google Cloud Run using GitHub Actions. It includes security scanning, CI/CD automation, uptime monitoring, and cost-effective architecture.
 
 ---
+
+## Diagram
+
+![alt text](gcp-fastapi-arch.drawio.png)
+
+
+## 1. Technology Stack
+
+- **Framework Setup**: FastAPI, Python
+  : Click here to follow: [0.Framework Setup](docs/0.framework_setup.md)
+- **Containerization**: Docker with multi-stage builds
+  : Click here to follow: [1.containerization_app](docs/1.containerization_app)
+- **Security**: Docker Scout (vulnerability scanning)
+- **Registry**: Google Artifact Registry
+- **Deployment**: Google Cloud Run (fully managed)
+- **Monitoring**: Google Cloud Monitoring (Uptime Checks, Logs)
+- **CI/CD**: GitHub Actions (triggered on `main` branch push)
+ : Click here to follow: [2.CICD-deployment](2.CICD-deployment)
+
+## ✅ Tools and Technologies
+
+| Area                     | Tool/Service              |
+|--------------------------|---------------------------|
+| **CI/CD Pipeline**       | GitHub Actions            |
+| **Secrets Management**   | GitHub Secrets            |
+| **Cloud Platform**       | Google Cloud Platform     |
+| **Deployment Service**   | Cloud Run                 |
+| **Containerization**     | Docker                    |
+| **Testing Framework**    | Pytest                    |
+| **Linting Tool**         | Pylint                    |
+| **Image Scanning**       | Docker Scout              |
+| **Artifact Storage**     | Google Artifact Registry  |
+| **Monitoring**           | Cloud Monitoring (Uptime, Logs) |
+
+
 
 ## ✅ Step-by-Step Implementation Checklist
 
@@ -29,15 +57,46 @@ pip install fastapi uvicorn httpx
 * [x] Create a simple API in `app/main.py`
 
 ```
+
+# 📘 API Setup and Testing - Local Environment
+
+## ✅ API Setup in Local Environment
+
+- Ensure required dependencies and runtime (e.g., Node.js, Python) are installed
+- Navigate to your project directory
+- Run the API using the appropriate command:
+  
+- For Python: `uvicorn app.main:app --reload`
+`
+- Terminal output confirms the API is running locally (see below)
+
+![alt text](images/local1.png)
+
+- Changed project structure
+![alt text](images/local3.png)
+
 * [x] Run API locally
 
-```bash
-uvicorn app.main:app --reload
-```
-
-Visit: `http://localhost:8000/`
-
 ![alt text](docs/images/local2.png)
+
+
+---
+
+## 🔍 Testing the API in a Browser
+
+- Open your web browser
+- Enter the API endpoint URL (e.g., `http://localhost:3000` or `http://127.0.0.1:8000`)
+- The expected JSON or text output will be displayed
+
+![alt text](images/local2.png)
+
+---
+
+## ✅ Summary
+
+- API successfully started on the local machine
+- Endpoint verified via browser test
+- Ready for integration or further development
 
 ---
 
@@ -95,6 +154,9 @@ PYTHONPATH=. pytest --color=yes | tee test-results.txt
 
 ---
 
+
+- **Containerization**: Docker with multi-stage builds
+
 ## ============= Docker =============================
 
 # Docker image tag
@@ -105,7 +167,7 @@ docker tag gcp-fastapi:v2 praful2018/gcp-fastapi:v2
 ![alt text](docs/images/tag1.png)
 
 
-# Push to Docker Hub
+# Push to Docker Hub to test
 
 ```shell
 docker push praful2018/gcp-fastapi:v2
@@ -116,125 +178,165 @@ docker push praful2018/gcp-fastapi:v2
 ![alt text](docs/images/tag3.png)
 
 
-### =================== Docker Image Optimization =================================
+## 2. Setup Overview
 
-# 🐋 FastAPI Docker Image Optimization using Alpine (Multi-Stage Build)
+### Build Phase (CI):
+- Run `pylint` to validate code quality (min score: 9.0)
+- Run `pytest` for unit tests
+- Build Docker image using secure multi-stage approach (Alpine-based)
+- Scan image with Docker Scout for known CVEs
 
-This guide provides a step-by-step Dockerfile setup using **Alpine Linux** and **multi-stage builds** to significantly reduce your FastAPI application's image size, maintain code quality enforcement (via `pylint`), and ensure testing with `pytest`.
+### Deploy Phase (CD):
+- Push image to Google Artifact Registry
+- Deploy to Google Cloud Run (with public access)
+- Retrieve Cloud Run URL and export as environment variable
+- Configure uptime check using Google Monitoring API
+- Enable structured logging for observability
 
 ---
 
-## 🎯 Objective
+## 3. IAM Roles Required (Service Account: `github-actions-deployer@...`)
 
-- Build a lightweight Docker image for a FastAPI + Uvicorn app
-- Reduce image size to below 50MB
-- Separate build and runtime stages
-- Run tests and linting during the build phase
+| Role Name                                      | Purpose                                      |
+|-----------------------------------------------|----------------------------------------------|
+| Artifact Registry Writer                       | Push images to Artifact Registry             |
+| Cloud Run Admin                                | Deploy/update Cloud Run services             |
+| Logs Writer                                    | Write logs for observability                 |
+| Monitoring Uptime Check Configuration Editor   | Configure monitoring uptime probes           |
+| Service Account User                           | Impersonate service account during pipeline  |
 
 ---
 
-## 🏗️ Multi-Stage Dockerfile using `python:3.12-alpine`
 
-```Dockerfile
-# Stage 1: Builder (Lint, Test)
-FROM python:3.12-alpine AS builder
 
-# Environment config
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+## 4. Cost Estimate
 
-# Install required build tools
-RUN apk add --no-cache gcc musl-dev libffi-dev make
+| Resource               | Tier                    | Estimated Cost (per month)  |
+|------------------------|-------------------------|------------------------------|
+| Cloud Run              | Always Free (up to 2M requests/month) | $0                       |
+| Artifact Registry      | 0.5 GB stored            | ~$0.10                       |
+| Cloud Logging          | Free up to 50GB          | $0                           |
+| Monitoring Uptime Check| First 100 checks free    | $0                           |
+| GitHub Actions         | Included in Free Tier    | $0          
 
-# Set work directory
-WORKDIR /app
+- **GitHub Actions: Unlimited for public repos • 2,000 minutes for private repos (Free Plan)
 
-# Install Python dependencies for linting and testing
-COPY requirements.txt .
-RUN pip install --upgrade pip setuptools==78.1.1 \
- && pip install -r requirements.txt \
- && pip install pytest pylint httpx
+> Total Monthly Estimate: **$0 – $1**, if within free tier limits.
 
-# Copy application source code
-COPY . .
+![alt text](docs/images/cost1.png)
 
-# Lint and test the application
-RUN PYTHONPATH=. pylint app tests --fail-under=9.0 \
- && PYTHONPATH=. pytest tests
-````
+![alt text](docs/images/cost2.png)
 
-```Dockerfile
-# Stage 2: Runtime
-FROM python:3.12-alpine
+Cost Summary
+The current architecture is highly cost-effective, designed to run for virtually free ($0-1 per month) by fully leveraging the "Always Free" tiers of Google Cloud and GitHub Actions. This is ideal for development, testing, and low-traffic applications.
+However, should the application need to scale to handle more latency-sensitive traffic, the operational cost is projected to be a predictable $12 to $15 per month. This increase is primarily driven by the most common scaling adjustment: configuring the Cloud Run service to keep a single instance running continuously (--min-instances=1) to eliminate cold starts.
 
-# Create a non-root user
-RUN adduser -D appuser
 
-# Set working directory
-WORKDIR /app
+# 💰 Cost Summary
 
-# Copy built app from builder
-COPY --from=builder /app /app
-COPY requirements.txt .
+The current architecture is **highly cost-effective**, designed to operate within the **"Always Free"** tiers offered by Google Cloud and GitHub Actions. This allows the application to run at **virtually no cost ($0–$1 per month)**, making it ideal for:
 
-# Install only runtime dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+- ✅ Development
+- ✅ Testing
+- ✅ Low-traffic production environments
 
-# Use non-root user
-USER appuser
+---
 
-# Expose the service port
-EXPOSE 8080
+## 📈 Projected Cost for Scaling
 
-# Start the FastAPI app with Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]
+If the application needs to scale for **latency-sensitive workloads** or higher traffic, the cost may increase slightly. This is mainly due to configuring **Cloud Run** to maintain warm instances, avoiding cold starts.
+
+### 🔧 Example Configuration:
+```bash
+--min-instances=1
 ```
+💵 Estimated Monthly Cost (with Scaling):
+
+| Feature                     | Cost Impact                                               |
+| --------------------------- | --------------------------------------------------------- |
+| Cloud Run (min-instances=1) | \$12 to \$15/month                                        |
+| GitHub Actions              | Still within free tier (2000 mins/month for public repos) |
+
+![alt text](docs/images/cost3.png)
+
+Click here to follow: [Cost Estimate](/docs/gcp-fastapi-cost-estimate.csv)
 
 ---
 
+## 5. Design Decisions
 
-![alt text](image.png)
+- **Cloud Run (fully managed)** was selected for:
+  - No server management
+  - Auto-scaling based on HTTP traffic
+  - Free tier benefits
+  - Integrated logging and monitoring
 
-## 📦 Estimated Image Size
+- **Docker Alpine Image** used for:
+  - Smaller image size (~35–45MB)
+  - Fewer attack vectors
+  - Faster cold starts
 
-| Base Image           | Approx Final Size | Notes                        |
-| -------------------- | ----------------- | ---------------------------- |
-| `python:3.12-slim`   | \~70–84 MB        | More compatible              |
-| `python:3.12-alpine` | ✅ **\~35–45 MB**  | Lightweight, musl-based libc |
+- **GitHub Actions** chosen for:
+  - Seamless integration with repo
+  - Secret management
+  - Flexible CI/CD pipeline configuration
+
+- gcloud CLI
+  A command-line tool to interact with Google Cloud resources directly.
+  Best suited for quick setup, one-off resource provisioning, or local development automation.
+
+## ⚖️ Decision Summary: Why gcloud CLI over Terraform?
+
+For this project, `gcloud CLI` was selected over Terraform due to its simplicity and speed in setting up and managing Google Cloud resources. Since the application is lightweight, single-environment, and designed for fast prototyping and CI/CD deployment, `gcloud CLI` offered:
+
+- ✅ Quick iteration and deployment with fewer files and no state management
+- ✅ Seamless integration into GitHub Actions workflows
+- ✅ Ideal support for minimal infrastructure (e.g., Cloud Run, Artifact Registry)
+
+Terraform is ideal for complex, multi-environment setups or where full infrastructure as code is required. However, for this scoped project, `gcloud CLI` aligns better with the goals of agility, clarity, and minimal overhead.
+
 
 ---
 
-## 🚫 Caveats with Alpine
+## 6. CI/CD Pipeline (GitHub Actions)
 
-* Some Python libraries (e.g., `psycopg2`, `numpy`) may **not compile cleanly** without extra dependencies.
-* Stick with Alpine **only** if your app doesn’t require heavy native dependencies.
+**Trigger**: On `master` branch push
 
----
-
-## 🧼 Optional: .dockerignore
-
-```dockerignore
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.venv/
-.env
-tests/
-*.db
-```
+### Steps:
+1. Checkout code
+2. Install dependencies
+3. Lint using `pylint`
+4. Test using `pytest`
+5. Build Docker image
+6. Scan image with Docker Scout
+7. Push image to Artifact Registry
+8. Deploy to Cloud Run
+9. Fetch Cloud Run URL
+10. Create Uptime Check
+11. Output deployed URL in job summary
 
 ---
 
-## ✅ Summary
+## 7. Uptime & Observability
 
-This Alpine-based multi-stage Dockerfile:
+- Configured `/hellowrold` endpoint for basic service checks.
+- Created uptime check with:
+  - Protocol: HTTPS
+  - Path: `/helloworld`
+  - Interval: 1 min
+- Logs collected automatically by Cloud Run and stored in Cloud Logging.
 
-* Separates build and runtime
-* Enforces code quality
-* Minimizes final image size
-* Ensures production security by using a non-root user
+---
 
+## 8. Final Output
 
-```
+- **Deployed URL**: Captured and logged via GitHub Actions
+- **Monitoring**: Active with alerts configurable via Cloud Monitoring
+- **Docker Image**: Available in Artifact Registry under project scope
+
+---
+
+## Conclusion
+
+This deployment framework is secure, automated, cost-effective, and production-ready. It provides a strong foundation for extending to multi-environment pipelines, secret management, and performance monitoring.
+
