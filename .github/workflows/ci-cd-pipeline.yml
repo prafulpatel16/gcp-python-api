@@ -128,7 +128,7 @@ jobs:
     - name: Get the Cloud Run service URL
       id: get_url
       run: |
-        SERVICE_URL=$(gcloud run services describe fastapi-app --platform=managed --region=us-central1 --format='value(status.url)')
+        SERVICE_URL=$(gcloud run services describe $SERVICE_NAME" --platform=managed --region=us-central1 --format='value(status.url)')
         echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
         echo "Service deployed successfully at: $SERVICE_URL"
 
